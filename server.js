@@ -25,6 +25,11 @@ app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
 app.use(express.static('public'));
 
 
+// Registering APIs
+
+require('./src/APIs')(app, express)
+
+
 // Starting Server
 
 app.listen(config.port, () => {
