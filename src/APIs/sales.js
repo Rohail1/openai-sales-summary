@@ -1,8 +1,9 @@
+const _ = require('lodash')
 const salesValidators = require('../Validators')().sales
 const MESSAGES = require('../Configs/messages')
-const _ = require('lodash')
+const openai = require('../Libs/openai')
 
-function salesInsight(req, res) {
+async function salesInsight(req, res) {
   try {
     const validationResult = salesValidators.saleInsightSchema.validate(req.body);
     if (validationResult.error) {
@@ -22,7 +23,7 @@ function salesInsight(req, res) {
       const averageSalesPerOrder = Number((totalSales / totalOrders).toFixed(2));
       const categoriesByOrderCount = _.countBy(req.body, 'category');
       const bestCategoryByOrderCount = Object.keys(categoriesByOrderCount).reduce((a, b) => categoriesByOrderCount[a] > categoriesByOrderCount[b] ?
-        { category: a, orders: categoriesByOrderCount[a] } : { category: b, orders: categoriesByOrderCount[b] });
+        a : b);
 
       const categoryByHighestSales = _(req.body).groupBy('category')
         .map((data, name) => ({
@@ -38,8 +39,11 @@ function salesInsight(req, res) {
 
 
       const stateWithMostOrders = _(req.body).countBy('state').entries().maxBy(_.last)
+      const analytics = { totalOrders, totalSales, averageSalesPerOrder, bestCategoryByOrderCount, categoryByHighestSales, highestPayingCustomer, stateWithMostOrders }
 
-      return res.status(MESSAGES.SUCCESSFUL.code).json({ 'status': "200", totalOrders, totalSales, averageSalesPerOrder, bestCategoryByOrderCount, categoryByHighestSales, highestPayingCustomer, stateWithMostOrders });
+      const gptResponse = await openai.SummarizeData(analytics);
+      analytics.summary = gptResponse.choices[0].message;
+      return res.status(MESSAGES.SUCCESSFUL.code).json(analytics);
     }
   } catch (error) {
     console.log(error)
