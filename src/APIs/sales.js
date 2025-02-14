@@ -1,15 +1,51 @@
 const salesValidators = require('../Validators')().sales
-
+const MESSAGES = require('../Configs/messages')
+const _ = require('lodash')
 
 function salesInsight(req, res) {
-  console.log('Sales insight !!!!!');
-  const validationResult = salesValidators.saleInsightSchema.validate(req.body);
-  if (!validationResult.error) {
-    res.status(200).json({ 'status': "200" });
+  try {
+    const validationResult = salesValidators.saleInsightSchema.validate(req.body);
+    if (validationResult.error) {
+      return res.status(MESSAGES.BAD_REQUEST.code).json({ 'error': validationResult.error.details });
 
-  } else {
-    res.status(400).json({ 'error': validationResult.error.details });
+    } else {
+      // 1. Total Orders
+      // 2. Total Sales
+      // 3. Average Sales per Order
+      // 4. Best Selling product Category by Order Count
+      // 5. Best Selling product Category by Sales Revenue
+      // 6. Highest Paying Customer
+      // 7. State with highest Orders
+
+      const totalOrders = req.body.length;
+      const totalSales = _.sumBy(req.body, 'amount');
+      const averageSalesPerOrder = Number((totalSales / totalOrders).toFixed(2));
+      const categoriesByOrderCount = _.countBy(req.body, 'category');
+      const bestCategoryByOrderCount = Object.keys(categoriesByOrderCount).reduce((a, b) => categoriesByOrderCount[a] > categoriesByOrderCount[b] ?
+        { category: a, orders: categoriesByOrderCount[a] } : { category: b, orders: categoriesByOrderCount[b] });
+
+      const categoryByHighestSales = _(req.body).groupBy('category')
+        .map((data, name) => ({
+          category: name,
+          sales: _.sumBy(data, 'amount'),
+        })).maxBy('sales');
+
+      const highestPayingCustomer = _(req.body).groupBy('name')
+        .map((data, name) => ({
+          name,
+          sales: _.sumBy(data, 'amount'),
+        })).maxBy('sales')
+
+
+      const stateWithMostOrders = _(req.body).countBy('state').entries().maxBy(_.last)
+
+      return res.status(MESSAGES.SUCCESSFUL.code).json({ 'status': "200", totalOrders, totalSales, averageSalesPerOrder, bestCategoryByOrderCount, categoryByHighestSales, highestPayingCustomer, stateWithMostOrders });
+    }
+  } catch (error) {
+    console.log(error)
+    return res.status(MESSAGES.INTERNAL_SERVER_ERROR.code).json(MESSAGES.INTERNAL_SERVER_ERROR);
   }
+
 
 }
 
