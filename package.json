@@ -1,0 +1,27 @@
+{
+  "name": "openai-sales-summary",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Rohail1/openai-sales-summary.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Rohail1/openai-sales-summary/issues"
+  },
+  "homepage": "https://github.com/Rohail1/openai-sales-summary#readme",
+  "dependencies": {
+    "body-parser": "^1.20.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "joi": "^17.13.3",
+    "morgan": "^1.10.0"
+  }
+}
