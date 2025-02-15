@@ -42,7 +42,8 @@ async function salesInsight(req, res) {
       const analytics = { totalOrders, totalSales, averageSalesPerOrder, bestCategoryByOrderCount, categoryByHighestSales, highestPayingCustomer, stateWithMostOrders }
 
       const gptResponse = await openai.SummarizeData(analytics);
-      analytics.summary = gptResponse.choices[0].message;
+      analytics.summary = gptResponse.choices[0].message.content;
+      analytics.summary = analytics.summary.replace(/\n/g, '');
       return res.status(MESSAGES.SUCCESSFUL.code).json(analytics);
     }
   } catch (error) {
